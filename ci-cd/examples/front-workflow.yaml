@@ -1,4 +1,4 @@
-name: CI/CD for user app (using reusable workflow)
+name: CI/CD for front app (using reusable workflow)
 
 on:
   push:
