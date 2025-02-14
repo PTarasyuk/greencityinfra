@@ -45,7 +45,7 @@ jobs:
           confd -onetime \
                 -backend env \
                 -confdir infra-repo/ci-cd/confd \
-                -template infra-repo/ci-cd/confd/templates/Dockerfile-${{ inputs.engine_type }}.tmpl
+                -config-file infra-repo/ci-cd/confd/conf.d/Dockerfile-${{ inputs.engine_type }}.toml
           mv /tmp/Dockerfile /app-repo/Dockerfile
       
       - name: Build and push Docker image to GHCR
