@@ -43,11 +43,9 @@ RUN mvn package \
 FROM eclipse-temurin:{{ getenv "ENGINE_VERSION" }}-jre-alpine
 
 WORKDIR /opt/app
-COPY --from=builder /app/target/${JAR_FILE} app.jar
+COPY --from=builder /build/core/target/core.jar app.jar
 
 ENV PROFILE=docker
 ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseContainerSupport"
-
-COPY --from=build /build/core/target/core.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]
