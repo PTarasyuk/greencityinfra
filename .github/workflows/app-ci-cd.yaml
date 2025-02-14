@@ -36,8 +36,9 @@ jobs:
 
       - name: Get App Version
         run: |
-          TAG = $(git -C ./app-repo describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          SHORT_SHA = $(git -C ./app-repo rev-parse --short HEAD)
+          git -C app-repo fetch --tags
+          TAG=$(git -C ./app-repo describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          SHORT_SHA=$(git -C ./app-repo rev-parse --short HEAD)
           APP_VERSION=${TAG}-${SHORT_SHA}
           echo "APP_VERSION: ${APP_VERSION}"
           echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
