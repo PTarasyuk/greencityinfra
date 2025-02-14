@@ -34,26 +34,49 @@ jobs:
           repository: 'PTarasyuk/GreenCityInfra'
           path: 'infra-repo'
 
-      - name: Render Dockerfile
-        env:
-          ENGINE_VERSION: ${{ inputs.engine_version }}
+      - name: Get App Version
         run: |
-          wget https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
-          chmod +x confd-0.16.0-linux-amd64
-          sudo mv confd-0.16.0-linux-amd64 /usr/local/bin/confd
-          confd -onetime \
-                -backend env \
-                -confdir infra-repo/ci-cd/confd/${{ inputs.engine_type }}
-          mv /tmp/Dockerfile ./app-repo/Dockerfile
+          TAG = $(git -C ./app-repo describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          SHORT_SHA = $(git -C ./app-repo rev-parse --short HEAD)
+          APP_VERSION=${TAG}-${SHORT_SHA}
+          echo "APP_VERSION: ${APP_VERSION}"
+          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
+
+    #   - name: Render Dockerfile
+    #     env:
+    #       ENGINE_VERSION: ${{ inputs.engine_version }}
+    #     run: |
+    #       wget https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+    #       chmod +x confd-0.16.0-linux-amd64
+    #       sudo mv confd-0.16.0-linux-amd64 /usr/local/bin/confd
+    #       confd -onetime \
+    #             -backend env \
+    #             -confdir infra-repo/ci-cd/confd/${{ inputs.engine_type }}
+    #       mv /tmp/Dockerfile ./app-repo/Dockerfile
+
+    #   - name: Login to GHCR
+    #     run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       
-      - name: Build and push Docker image to GHCR
-        uses: docker/build-push-action@v6
-        with:
-          context: ./app-repo
-          file: ./app-repo/Dockerfile
-          build-args: |
-            SKIP_TESTS: true
-          push: true
-          tags: ghcr.io/ptarasyuk/greengityinfra/${{ inputs.app_name }}:${{ inputs.app_version }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+    #   - name: Build Docker image
+    #     run: |
+    #       docker build \
+    #         --build-arg SKIP_TESTS=true \
+    #         -t ghcr.io/ptarasyuk/greencityinfra/${{ inputs.app_name }}:${{ inputs.app_version }} \
+    #         -f ./infra-repo/Dockerfile \
+    #         ./infra-repo
+
+    #   - name: Push Docker image to GHCR
+    #     run: |
+    #       docker push ghcr.io/ptarasyuk/greencityinfra/${{ inputs.app_name }}:${{ inputs.app_version }}
+            
+    #   - name: Build and push Docker image to GHCR
+    #     uses: docker/build-push-action@v6
+    #     with:
+    #       context: ./app-repo
+    #       file: ./app-repo/Dockerfile
+    #       build-args: |
+    #         SKIP_TESTS: true
+    #       push: true
+    #       tags: ghcr.io/ptarasyuk/greengityinfra/${{ inputs.app_name }}:${{ inputs.app_version }}
+    #       username: ${{ github.actor }}
+    #       password: ${{ secrets.GHCR_TOKEN }}
