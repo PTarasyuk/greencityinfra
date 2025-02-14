@@ -1,6 +1,8 @@
 name: CI/CD for user app (using reusable workflow)
 
-on: push
+on:
+  push:
+  workflow_dispatch:
 # on:
 #   push:
 #     tags:
@@ -8,10 +10,9 @@ on: push
 
 jobs:
   ci-cd:
-    uses: PTarasyuk/GreenCityInfra/ci-cd/workflows/main.yml@main
+    uses: PTarasyuk/GreenCityInfra/.github/workflows/app-ci-cd.yaml@main
     with:
       app_name: 'user'
-      app_version: "${{ github.ref_name || 'v0.0.0' }}-${{ github.sha.slice(0, 7) }}"
       engine_type: 'java'
       engine_version: '21'
     secrets:

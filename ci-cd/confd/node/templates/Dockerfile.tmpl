@@ -1,6 +1,6 @@
 ARG SKIP_TESTS=false
 
-FROM node:{{ getenv ENGINE_VERSION }}-alpine as builder
+FROM node:{{ getenv "ENGINE_VERSION" }}-alpine as builder
 
 WORKDIR /app
 

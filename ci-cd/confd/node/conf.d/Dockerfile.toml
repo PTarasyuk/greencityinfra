@@ -1,5 +1,5 @@
 [template]
-src = "Dockerfile-java.tmpl"  # Template Dockerfile
+src = "Dockerfile.tmpl"       # Template Dockerfile
 dest = "/tmp/Dockerfile"      # Temporary file
 keys = [
     "/",                      # Process all environment variables
