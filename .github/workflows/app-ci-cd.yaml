@@ -54,6 +54,6 @@ jobs:
           build-args: |
             SKIP_TESTS: true
           push: true
-          tags: ghcr.io/PTarasyuk/GreenCityInfra/${{ inputs.app_name }}:${{ inputs.app_version }}
+          tags: ghcr.io/ptarasyuk/greengityinfra/${{ inputs.app_name }}:${{ inputs.app_version }}
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
