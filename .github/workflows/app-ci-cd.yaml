@@ -1,4 +1,4 @@
-name: CI/CD for App
+name: Reusable App Build and Dockerize
 
 on:
   workflow_call:
@@ -6,7 +6,7 @@ on:
       app_name:
         required: true
         type: string
-      engine_type:
+      engine_type: # java or node
         required: true
         type: string
       engine_version:
@@ -17,11 +17,55 @@ on:
         required: true
 
 jobs:
-  ci-cd:
-    uses: ci-cd/workflows/main.yaml
-    with:
-      app_name: ${{ inputs.app_name }}
-      engine_type: ${{ inputs.engine_type }}
-      engine_version: ${{ inputs.engine_version }}
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+  build-and-dockerize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+        with:
+          path: 'app-repo'
+
+      - name: Checkout infrastructure repo
+        uses: actions/checkout@v4
+        with:
+          repository: 'PTarasyuk/GreenCityInfra'
+          path: 'infra-repo'
+
+      - name: Get App Version
+        run: |
+          git -C app-repo fetch --tags
+          TAG=$(git -C ./app-repo tag | sort -V | tail -n 1)
+          if [ -z "$TAG" ]; then
+            TAG="v0.0.0"
+          fi
+          SHORT_SHA=$(git -C ./app-repo rev-parse --short HEAD)
+          APP_VERSION=${TAG}-${SHORT_SHA}
+          echo "APP_VERSION: ${APP_VERSION}"
+          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
+
+      - name: Render Dockerfile
+        env:
+          ENGINE_VERSION: ${{ inputs.engine_version }}
+        run: |
+          wget https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+          chmod +x confd-0.16.0-linux-amd64
+          sudo mv confd-0.16.0-linux-amd64 /usr/local/bin/confd
+          confd -onetime \
+                -backend env \
+                -confdir infra-repo/ci-cd/confd/${{ inputs.engine_type }}
+          mv /tmp/Dockerfile ./app-repo/Dockerfile
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg SKIP_TESTS=true \
+            -t ghcr.io/ptarasyuk/greencityinfra/${{ inputs.app_name }}:$APP_VERSION \
+            -f ./app-repo/Dockerfile \
+            ./app-repo
+
+      - name: Push Docker image to GHCR
+        run: |
+          docker push ghcr.io/ptarasyuk/greencityinfra/${{ inputs.app_name }}:$APP_VERSION
