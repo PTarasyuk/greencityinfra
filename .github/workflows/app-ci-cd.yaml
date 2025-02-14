@@ -49,8 +49,8 @@ jobs:
       - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v5
         with:
-          context: ./infra-repo
-          file: ./infra-repo/Dockerfile
+          context: ./app-repo
+          file: ./app-repo/Dockerfile
           build-args: |
             SKIP_TESTS: true
           registry: ghcr.io
