@@ -1,0 +1,56 @@
+name: Reusable Java Build and Dockerize
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        required: true
+        type: string
+      app_version:
+        required: true
+        type: string
+      engine_type: # java or node
+        required: true
+        type: string
+      engine_version:
+        required: true
+        type: string
+    secrets:
+      GHCR_TOKEN:
+        required: true
+        type: string
+
+jobs:
+  build-and-dockerize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+        with:
+          path: 'app-repo'
+
+      - name: Checkout infrastructure repo
+        uses: actions/checkout@v4
+        with:
+          repository: 'PTarasyuk/GreenCityInfra'
+          path: 'infra-repo'
+
+      - name: Render Dockerfile
+        env:
+          ENGINE_VERSION: {{ inputs.engine_version }}
+        run: |
+          wget https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+          chmod +x confd-0.16.0-linux-amd64
+          sudo mv confd-0.16.0-linux-amd64 /usr/local/bin/confd
+          confd -onetime \
+                -backend env \
+                -confdir infra-repo/ci-cd/confd \
+                -template infra-repo/ci-cd/confd/templates/Dockerfile-${{ inputs.engine_type }}.tmpl
+          mv /tmp/Dockerfile /app-repo/Dockerfile
+      
+      - name: Build and push Docker image to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: infra-repo
+          file: infra-repo/Dockerfile
+          image: ghcr.io/PTarasyuk/GreenCityInfra/${{ app_name }}:${{ app_version }}
