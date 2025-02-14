@@ -14,3 +14,5 @@ jobs:
       app_version: "${{ github.ref_name || 'v0.0.0' }}-${{ github.sha.slice(0, 7) }}"
       engine_type: 'java'
       engine_version: '21'
+    secrets:
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}

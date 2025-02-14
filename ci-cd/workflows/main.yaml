@@ -51,6 +51,11 @@ jobs:
       - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v5
         with:
-          context: infra-repo
-          file: infra-repo/Dockerfile
-          image: ghcr.io/PTarasyuk/GreenCityInfra/${{ app_name }}:${{ app_version }}
+          context: ./infra-repo
+          file: ./infra-repo/Dockerfile
+          build-args:
+            SKIP_TESTS: true
+          registry: ghcr.io
+          image: PTarasyuk/GreenCityInfra/${{ inputs.app_name }}:${{ inputs.app_version }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
