@@ -44,7 +44,7 @@ jobs:
           confd -onetime \
                 -backend env \
                 -confdir infra-repo/ci-cd/confd/${{ inputs.engine_type }}
-          mv /tmp/Dockerfile /app-repo/Dockerfile
+          mv /tmp/Dockerfile ./app-repo/Dockerfile
       
       - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v5
