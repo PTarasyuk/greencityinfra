@@ -61,7 +61,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            --build-arg SKIP_TESTS=true \
+            --build-arg SKIP_TESTS=false \
             -t ghcr.io/ptarasyuk/greencityinfra/${{ inputs.app_name }}:$APP_VERSION \
             -f ./app-repo/Dockerfile \
             ./app-repo
