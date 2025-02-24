@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front
+  namespace: greencity
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: front
+  template:
+    metadata:
+      labels:
+        app: front
+    spec:
+      serviceAccountName: greencity-sa
+      initContainers:
+      - name: wait-for-core
+        image: busybox
+        command: ['sh', '-c', 'until wget -qO- http://core:8080/swagger-ui/index.html; do echo waiting for core; sleep 2; done']
+      - name: wait-for-user
+        image: busybox
+        command: ['sh', '-c', 'until wget -qO- http://user:8060/swagger-ui/index.html; do echo waiting for user; sleep 2; done']
+      containers:
+      - name: front
+        image: ghcr.io/ptarasyuk/greencityinfra/front
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: nginx.conf
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "50m"
+          limits:
+            memory: "64Mi"
+            cpu: "100m"
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config

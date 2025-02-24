@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-ingress
+  namespace: greencity
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # nginx.ingress.kubernetes.io/proxy-set-headers: |
+    #   X-Forwarded-Authorization $http_authorization
+    #   X-Real-IP $remote_addr
+    #   X-Forwarded-For $proxy_add_x_forwarded_for
+    #   X-Forwarded-Proto $http_x_forwarded_proto
+    #   X-Forwarded-Port $http_x_forwarded_port
+    #   Host $http_host
+    # nginx.ingress.kubernetes.io/proxy-connect-timeout: "120"
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    # nginx.ingress.kubernetes.io/send-timeout: "120"
+    # nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      # Core API
+      - path: /core(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: core
+            port:
+              number: 8080
+              
+      # User API
+      - path: /user(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: user
+            port:
+              number: 8060

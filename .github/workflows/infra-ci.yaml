@@ -1,0 +1,119 @@
+name: Infra CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      #############################################
+      # Setup
+      #############################################
+
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Create KinD Cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          verbosity: "1"
+          config: ./k8s/overlays/ci/kind-config.yaml
+          cluster_name: greencity-cluster
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Pass Docker credentials to KinD
+        run: |
+          kind get clusters
+          KIND_NODE=$(kind get nodes --name greencity-cluster | head -n 1)
+          echo "Node: ${KIND_NODE}"
+          docker cp ~/.docker/config.json "${KIND_NODE}":/var/lib/kubelet/config.json
+          docker exec "${KIND_NODE}" systemctl restart containerd
+          echo "✅ Docker credentials configured for KinD"
+
+      - name: Install NGINX Ingress Controller
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+          
+          # Waiting for the controller to be ready
+          kubectl wait --namespace ingress-nginx \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/component=controller \
+            --timeout=180s
+
+      #############################################
+      # Deploy
+      #############################################
+            
+      - name: Define environment variables
+        run: |
+          export DATASOURCE_DB="${{ secrets.DATASOURCE_DB }}"
+          export DATASOURCE_URL="${{ secrets.DATASOURCE_URL }}"
+          export DATASOURCE_USER="${{ secrets.DATASOURCE_USER }}"
+          export DATASOURCE_PASSWORD="${{ secrets.DATASOURCE_PASSWORD }}"
+          export AZURE_CONNECTION_STRING="${{ secrets.AZURE_CONNECTION_STRING }}"
+          export AZURE_CONTAINER_NAME="${{ secrets.AZURE_CONTAINER_NAME }}"
+          export GITHUB_TOKEN="${{ secrets.GHCR_TOKEN }}"
+          ./k8s/overlays/ci/create-env.sh
+          ls -la k8s/overlays/ci/envs/
+      
+      - name: Apply kustomize configuration
+        run: kubectl apply -k k8s/overlays/ci
+          
+      - name: Wait for the deployment to be ready
+        run: |
+          echo "⏱ Waiting for pods creation..."
+          sleep 10
+          
+          echo "⏱ Waiting for pods to be ready..."
+          # Wait for database
+          kubectl wait --namespace greencity \
+            --for=condition=ready pod \
+            --selector=app=db \
+            --timeout=180s
+
+          # Wait for core service
+          kubectl wait --namespace greencity \
+            --for=condition=ready pod \
+            --selector=app=core \
+            --timeout=180s
+          
+          # Wait for user service
+          kubectl wait --namespace greencity \
+            --for=condition=ready pod \
+            --selector=app=user \
+            --timeout=180s
+          
+          # Wait for frontend
+          kubectl wait --namespace greencity \
+            --for=condition=ready pod \
+            --selector=app=front \
+            --timeout=180s
+
+      - name: Check KinD Cluster
+        run: |
+          echo "❗️ Cluster Info:"
+          kubectl cluster-info
+          
+          echo "❗️ Nodes:"
+          kubectl get nodes
+          
+          echo "❗️ All Pods across namespaces:"
+          kubectl get pods --all-namespaces
+          
+          echo "❗️ Services:"
+          kubectl get svc -n greencity
+          
+          echo "❗️ Deployments:"
+          kubectl get deployments -n greencity

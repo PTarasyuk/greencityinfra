@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      serviceAccountName: greencity-sa
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ['sh', '-c', 'until nc -z db 5432; do echo "Waiting for db..."; sleep 2; done;']
+      - name: wait-for-core
+        image: busybox
+        command: ['sh', '-c', 'until wget -qO- http://core:8080/swagger-ui/index.html; do echo waiting for core; sleep 2; done']
+      containers:
+      - name: user
+        image: ghcr.io/ptarasyuk/greencityinfra/user
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8060
+        envFrom:
+        - secretRef:
+            name: user-secrets
+        - secretRef:
+            name: common-secrets
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /swagger-ui/index.html
+            port: 8060
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /swagger-ui/index.html
+            port: 8060
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 5
+          successThreshold: 1
