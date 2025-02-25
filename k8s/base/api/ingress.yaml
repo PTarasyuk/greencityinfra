@@ -30,7 +30,7 @@ spec:
             name: core
             port:
               number: 8080
-              
+
       # User API
       - path: /user(/|$)(.*)
         pathType: ImplementationSpecific

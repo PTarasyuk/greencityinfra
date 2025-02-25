@@ -43,7 +43,7 @@ remove_host_entry() {
 # Function to manage host entries
 manage_hosts() {
     local action=$1
-    
+
     for domain in "${DOMAINS[@]}"; do
         case $action in
             add)
@@ -55,7 +55,7 @@ manage_hosts() {
             check)
                 if check_host_entry "$domain"; then
                     log "✓ Entry for $domain exists"
-                    return 0    
+                    return 0
                 else
                     log "✗ Entry for $domain not found"
                     return 1
@@ -73,7 +73,7 @@ check_minikube_tunnel() {
         log "Please run 'minikube tunnel' in a separate terminal"
         return 1
     fi
-    
+
     log "✓ Minikube tunnel is running properly"
     return 0
 }
@@ -144,7 +144,7 @@ check_dns_status() {
         return 1
     fi
     echo
-    
+
     # Stage 2: Checking minikube
     if ! check_minikube; then
         return 1
@@ -156,14 +156,14 @@ check_dns_status() {
         return 1
     fi
     echo
-    
+
     # Stage 4: Checking host entries
     log "Checking host entries..."
     if ! manage_hosts check; then
         return 1
     fi
     echo
-    
+
     # If all checks passed successfully
     echo
     log "✓ All DNS checks passed successfully"
@@ -189,7 +189,7 @@ main() {
         log "Commands: setup, cleanup, status"
         exit 1
     fi
-    
+
     case $COMMAND in
         setup)
             setup_dns

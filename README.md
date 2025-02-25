@@ -1,5 +1,17 @@
 # GreenCity Infrastructure Repository
 
+![](https://img.shields.io/github/license/PTarasyuk/greencityinfra)
+![](https://img.shields.io/github/commit-activity/w/PTarasyuk/greencityinfra)
+![](https://img.shields.io/github/last-commit/PTarasyuk/greencityinfra)
+![](https://img.shields.io/github/repo-size/PTarasyuk/greencityinfra)
+
+![Docker Badge](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff&style=for-the-badge)
+![Kubernetes Badge](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=fff&style=for-the-badge)
+![Terraform Badge](https://img.shields.io/badge/Terraform-844FBA?logo=terraform&logoColor=fff&style=for-the-badge)
+![OpenTofu Badge](https://img.shields.io/badge/OpenTofu-FFDA18?logo=opentofu&logoColor=000&style=for-the-badge)
+![Amazon EKS Badge](https://img.shields.io/badge/Amazon%20EKS-F90?logo=amazoneks&logoColor=fff&style=for-the-badge)
+![Amazon RDS Badge](https://img.shields.io/badge/Amazon%20RDS-527FFF?logo=amazonrds&logoColor=fff&style=for-the-badge)
+
 This repository contains the infrastructure configuration for the [GreenCity Project](https://github.com/ita-social-projects/GreenCity).
 
 ## Repository structure
