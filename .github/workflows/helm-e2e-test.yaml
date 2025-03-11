@@ -1,0 +1,181 @@
+name: Helm E2E Testing in KinD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'helm/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'helm/**'
+  workflow_dispatch:
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      #############################################
+      # Setup
+      #############################################
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create KinD Cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          verbosity: "1"
+          config: ./.github/kind-config.yaml
+          cluster_name: greencity-cluster
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.3.0
+
+      - name: Install NGINX Ingress Controller
+        run: |
+          kubectl create namespace ingress-nginx
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+          helm install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --set controller.hostPort.enabled=true \
+            --set controller.service.type=NodePort
+
+          # Waiting for the controller to be ready
+          kubectl wait --namespace ingress-nginx \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/component=controller \
+            --timeout=180s
+
+      #############################################
+      # Deploy
+      #############################################
+
+      - name: Create namespace
+        run: kubectl create namespace greencity
+
+      - name: Install PostgreSQL
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          helm install db bitnami/postgresql \
+            --namespace greencity \
+            --set fullnameOverride=db \
+            --set primary.service.type=NodePort \
+            --set primary.service.nodePorts.postgresql="32345" \
+            --set global.postgresql.auth.username=${{ secrets.DATASOURCE_USER }} \
+            --set global.postgresql.auth.password=${{ secrets.DATASOURCE_PASSWORD }} \
+            --set global.postgresql.auth.database=${{ secrets.DATASOURCE_DB }}
+
+          # Wait for the database to be ready
+          kubectl wait --namespace greencity \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/instance=db \
+            --timeout=180s
+
+      - name: Install Sealed Secrets Controller
+        run: |
+          helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+          helm repo update
+          helm install sealed-secrets sealed-secrets/sealed-secrets \
+            --namespace kube-system \
+            --set-string fullnameOverride=sealed-secrets-controller
+          # TODO: Fix error: no matching resources found
+          kubectl wait --namespace kube-system \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/name=sealed-secrets-controller \
+            --timeout=180s
+
+      - name: Install kubeseal tools
+        run: |
+          KUBESEAL_VERSION='0.28.0'
+          curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION:?}/kubeseal-${KUBESEAL_VERSION:?}-linux-amd64.tar.gz"
+          tar -xvzf kubeseal-${KUBESEAL_VERSION:?}-linux-amd64.tar.gz kubeseal
+          sudo install -m 755 kubeseal /usr/local/bin/kubeseal
+
+      - name: Get public certificate
+        run: |
+          kubeseal \
+            --controller-name=sealed-secrets-controller \
+            --controller-namespace=kube-system \
+            --fetch-cert > public-key.pem
+
+      - name: Create App Secrets
+        run: |
+          kubectl create secret generic greencity-secret \
+            --dry-run=client -o json \
+            --from-literal=datasource-url=${{ secrets.DATASOURCE_URL }} \
+            --from-literal=datasource-user=${{ secrets.DATASOURCE_USER }} \
+            --from-literal=datasource-password=${{ secrets.DATASOURCE_PASSWORD }} \
+            --from-literal=azure-connection-string="${{ secrets.AZURE_CONNECTION_STRING }}" \
+            --from-literal=azure-container-name=${{ secrets.AZURE_CONTAINER_NAME }} \
+            --namespace greencity | \
+          kubeseal \
+            --cert public-key.pem | \
+          kubectl apply -f -
+
+          kubectl create secret docker-registry ghcr-secret \
+            --dry-run=client -o json \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GHCR_TOKEN }} \
+            --namespace greencity | \
+          kubeseal \
+            --cert public-key.pem | \
+          kubectl apply -f -
+
+      - name: Install Core
+        run: |
+          helm install core \
+            --namespace greencity \
+            /helm/core/
+
+          # Wait for the core to be ready
+          kubectl wait --namespace greencity \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/instance=core \
+            --timeout=180s
+
+      - name: Install User
+        run: |
+          helm install user \
+            --namespace greencity \
+            /helm/user/
+
+          # Wait for the user to be ready
+          kubectl wait --namespace greencity \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/instance=user \
+            --timeout=180s
+
+      - name: Install Front
+        run: |
+          helm install front \
+            --namespace greencity \
+            /helm/front/
+
+          # Wait for the front to be ready
+          kubectl wait --namespace greencity \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/instance=front \
+            --timeout=180s
+
+      - name: Check KinD Cluster
+        run: |
+          echo "❗️ Cluster Info:"
+          kubectl cluster-info
+
+          echo "❗️ Nodes:"
+          kubectl get nodes
+
+          echo "❗️ All Pods across namespaces:"
+          kubectl get pods --all-namespaces
+
+          echo "❗️ Services:"
+          kubectl get svc -n greencity
+
+          echo "❗️ Deployments:"
+          kubectl get deployments -n greencity
