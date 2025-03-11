@@ -1,0 +1,30 @@
+{
+  "name": "e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E tests of GreenCity infrastructure",
+  "keywords": [
+    "test",
+    "e2e",
+    "cypress",
+    "postgresql",
+    "greencity"
+  ],
+  "bugs": {
+    "url": "https://github.com/PTarasyuk/greencityinfra",
+    "email": "pasha.tarasyuk@gmail.com"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Pavlo Tarasiuk",
+    "email": "pasha.tarasyuk@gmail.com"
+  },
+  "scripts": {
+    "cypress": "cypress open",
+    "test": "node run-tests.js"
+  },
+  "devDependencies": {
+    "cypress": "^14.0.3",
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.3"
+  }
+}
