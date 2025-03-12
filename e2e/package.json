@@ -20,7 +20,7 @@
   },
   "scripts": {
     "cypress": "cypress open",
-    "test": "node run-tests.js"
+    "test": "node run-test.js"
   },
   "devDependencies": {
     "cypress": "^14.0.3",

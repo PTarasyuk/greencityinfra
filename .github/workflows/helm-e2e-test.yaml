@@ -161,19 +161,51 @@ jobs:
             --selector=app.kubernetes.io/instance=front \
             --timeout=180s
 
-      - name: Check KinD Cluster
+      #############################################
+      # E2E Testing
+      #############################################
+
+      - name: Create .env file
         run: |
-          echo "❗️ Cluster Info:"
-          kubectl cluster-info
+          touch e2e/.env
+          echo PG_HOST=localhost >> e2e/.env
+          echo PG_PORT=5432 >> e2e/.env
+          echo PG_DATABASE=${{ secrets.DATASOURCE_DB }} >> e2e/.env
+          echo PG_USER=${{ secrets.DATASOURCE_USER }} >> e2e/.env
+          echo PG_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} >> e2e/.env
 
-          echo "❗️ Nodes:"
-          kubectl get nodes
+      - name: Cypress run
+        id: cypress
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm --prefix e2e test
+          record: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          echo "❗️ All Pods across namespaces:"
-          kubectl get pods --all-namespaces
+      - name: Upload test results as artifacts
+        id: upload-artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-and-results
+          path: |
+            e2e/cypress/videos
 
-          echo "❗️ Services:"
-          kubectl get svc -n greencity
+      - name: Create comment with test results
+        if: github.event_name == 'pull_request' && steps.cypress.outcome != 'skipped'
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## E2E tests results
 
-          echo "❗️ Deployments:"
-          kubectl get deployments -n greencity
+            ${{ job.status == 'success' && '✅ The GitHub Actions workflow completed successfully!' || '❌ The GitHub Actions workflow failed! Please check the logs for details.' }}
+
+            The Cypress tests have completed with status: **${{ steps.cypress.outcome }}**
+
+            ${{ steps.upload-artifact.outcome != 'skipped' && '### Test results' }}
+            ${{ steps.upload-artifact.outcome != 'skipped' && '' }}
+            ${{ steps.upload-artifact.outcome != 'skipped' && 'The test results are available as artifacts. You can download then from the following link:' }}
+            ${{ steps.upload-artifact.outcome != 'skipped' && '[Download artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)' }}
+          reactions: ${{ steps.cypress.outcome == 'success' && '+1' || '-1' }}
