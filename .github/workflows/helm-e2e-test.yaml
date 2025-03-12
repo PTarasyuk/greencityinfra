@@ -192,22 +192,3 @@ jobs:
           name: test-artifacts-and-results
           path: |
             e2e/cypress/videos
-
-      - name: Create comment with test results
-        if: github.event_name == 'pull_request' && steps.cypress.outcome != 'skipped'
-        uses: peter-evans/create-or-update-comment@v2
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ## E2E tests results
-
-            ${{ job.status == 'success' && '✅ The GitHub Actions workflow completed successfully!' || '❌ The GitHub Actions workflow failed! Please check the logs for details.' }}
-
-            The Cypress tests have completed with status: **${{ steps.cypress.outcome }}**
-
-            ${{ steps.upload-artifact.outcome != 'skipped' && '### Test results' }}
-            ${{ steps.upload-artifact.outcome != 'skipped' && '' }}
-            ${{ steps.upload-artifact.outcome != 'skipped' && 'The test results are available as artifacts. You can download then from the following link:' }}
-            ${{ steps.upload-artifact.outcome != 'skipped' && '[Download artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)' }}
-          reactions: ${{ steps.cypress.outcome == 'success' && '+1' || '-1' }}
-          token: ${{ secrets.GITHUB_TOKEN }}
