@@ -129,7 +129,7 @@ jobs:
         run: |
           helm install core \
             --namespace greencity \
-            /helm/core/
+            helm/core/
 
           # Wait for the core to be ready
           kubectl wait --namespace greencity \
@@ -141,7 +141,7 @@ jobs:
         run: |
           helm install user \
             --namespace greencity \
-            /helm/user/
+            helm/user/
 
           # Wait for the user to be ready
           kubectl wait --namespace greencity \
@@ -153,7 +153,7 @@ jobs:
         run: |
           helm install front \
             --namespace greencity \
-            /helm/front/
+            helm/front/
 
           # Wait for the front to be ready
           kubectl wait --namespace greencity \
