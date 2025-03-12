@@ -84,7 +84,7 @@ jobs:
           path: infra-repo
           base: main
           branch: ${{ inputs.app_name }}-${{ env.APP_VERSION }}
-          commit-message: '✨ feat(${{ inputs.app_name }}): new version ${APP_VERSION}'
+          commit-message: '✨ feat(${{ inputs.app_name }}): new version ${{ env.APP_VERSION }}'
           delete-branch: true
           title: '✨ New version!'
           body: |
