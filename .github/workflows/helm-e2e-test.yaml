@@ -210,3 +210,4 @@ jobs:
             ${{ steps.upload-artifact.outcome != 'skipped' && 'The test results are available as artifacts. You can download then from the following link:' }}
             ${{ steps.upload-artifact.outcome != 'skipped' && '[Download artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)' }}
           reactions: ${{ steps.cypress.outcome == 'success' && '+1' || '-1' }}
+          token: ${{ secrets.GITHUB_TOKEN }}

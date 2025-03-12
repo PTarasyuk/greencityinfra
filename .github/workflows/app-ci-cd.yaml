@@ -81,17 +81,17 @@ jobs:
           token: ${{ secrets.GHCR_TOKEN }}
           path: infra-repo
           base: main
-          branch: ${{ inputs.app_name }}-$APP_VERSION
-          commit-message: '✨ feat(${{ inputs.app_name }}): new version $APP_VERSION'
+          branch: ${{ inputs.app_name }}-${APP_VERSION}
+          commit-message: '✨ feat(${{ inputs.app_name }}): new version ${APP_VERSION}'
           delete-branch: true
           title: '✨ New version!'
           body: |
-            # New version of the `${{ inputs.app_name }}` application `$APP_VERSION`!
+            # New version of the `${{ inputs.app_name }}` application `${APP_VERSION}`!
 
             ## Description
 
-            This PR updates the `${{ inputs.app_name }}` application to version `$APP_VERSION`.
+            This PR updates the `${{ inputs.app_name }}` application to version `${APP_VERSION}`.
 
             ## Changes
 
-            - Changed the value of the `image.tag` variable in `helm/${{ inputs.app_name }}/values.yaml` to `$APP_VERSION`
+            - Changed the value of the `image.tag` variable in `helm/${{ inputs.app_name }}/values.yaml` to `${APP_VERSION}`
