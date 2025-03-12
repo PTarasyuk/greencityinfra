@@ -16,6 +16,7 @@
 ![Amazon EKS Badge](https://img.shields.io/badge/Amazon%20EKS-F90?logo=amazoneks&logoColor=fff&style=for-the-badge)
 ![Amazon RDS Badge](https://img.shields.io/badge/Amazon%20RDS-527FFF?logo=amazonrds&logoColor=fff&style=for-the-badge)
 ![ArgoCD Badge](https://img.shields.io/badge/ArgoCD-EF7B4D?logo=argo&logoColor=fff&style=for-the-badge)
+![Made by Ukrainian](https://img.shields.io/static/v1?label=Made%20by&message=Ukrainian&labelColor=1f5fb2&color=fad247&style=for-the-badge)
 
 This repository contains the infrastructure configuration for the [GreenCity Project](https://github.com/ita-social-projects/GreenCity).
 
@@ -63,3 +64,5 @@ For information on deploying Kubernetes via simple manifests, see [k8s/README.md
 ## Architecture Decision Records (ADR)
 
 For insights into the architectural decisions behind this project, refer to the [ADR Documentation](./docs/ADR/index.md).
+
+[![SWUbanner](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner-personal-page.svg)](https://vshymanskyy.github.io/StandWithUkraine)
