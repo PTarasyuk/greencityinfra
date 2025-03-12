@@ -178,8 +178,9 @@ jobs:
         id: cypress
         uses: cypress-io/github-action@v6
         with:
-          start: npm --prefix e2e test
+          start: npm test
           record: true
+          working-directory: e2e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
