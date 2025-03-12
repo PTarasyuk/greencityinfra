@@ -83,8 +83,6 @@ jobs:
           base: main
           branch: ${{ inputs.app_name }}-$APP_VERSION
           commit-message: '✨ feat(${{ inputs.app_name }}): new version $APP_VERSION'
-          committer: 'github-actions[bot]@users.noreply.github.com'
-          author: 'github-actions[bot]'
           delete-branch: true
           title: '✨ New version!'
           body: |
