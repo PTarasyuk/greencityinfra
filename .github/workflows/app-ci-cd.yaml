@@ -82,7 +82,6 @@ jobs:
           path: infra-repo
           base: main
           branch: ${{ inputs.app_name }}-$APP_VERSION
-          branch-suffix: ${{ github.run_id }}
           commit-message: '✨ feat(${{ inputs.app_name }}): new version $APP_VERSION'
           committer: 'github-actions[bot]@users.noreply.github.com'
           author: 'github-actions[bot]'
