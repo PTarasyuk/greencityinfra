@@ -83,10 +83,8 @@ jobs:
           helm install sealed-secrets sealed-secrets/sealed-secrets \
             --namespace kube-system \
             --set-string fullnameOverride=sealed-secrets-controller
-          # TODO: Fix error: no matching resources found
           kubectl wait --namespace kube-system \
-            --for=condition=ready pod \
-            --selector=app.kubernetes.io/name=sealed-secrets-controller \
+            --for=condition=available deployment/sealed-secrets-controller \
             --timeout=180s
 
       - name: Install kubeseal tools
