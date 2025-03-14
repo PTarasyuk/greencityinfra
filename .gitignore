@@ -2,6 +2,7 @@
 .vscode
 tmp/
 temp/
+temp.txt
 
 ### Node ###
 # Logs

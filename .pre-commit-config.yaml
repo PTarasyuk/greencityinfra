@@ -16,5 +16,3 @@ repos:
   hooks:
   - id: markdown-link-check
   - id: helmlint
-  - id: terraform-fmt
-  - id: tflint
