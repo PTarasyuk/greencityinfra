@@ -68,5 +68,6 @@ variable "helm_releases_version" {
   default     = {
     external-dns                 = "1.15.2"
     aws_load_balancer_controller = "1.11.0"
+    argocd                       = "7.8.11"
   }
 }

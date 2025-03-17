@@ -69,4 +69,43 @@ module "eks_blueprints_addons" {
       }
     ]
   }
+
+  # ArgoCD
+  enable_argocd = true
+  argocd = {
+    namespace = "argocd"
+    chart_version = var.helm_releases_version.argocd
+    values = [
+      <<-EOT
+        global:
+          domain: argocd.greensity.space
+        server:
+          service:
+            type: LoadBalancer
+            annotations:
+              service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+        configs:
+          repository:
+            name: greencityinfra
+            type: git
+            url: https://github.com/PTarasyuk/greencityinfra
+        tolerations:
+          - key: CriticalAddonsOnly
+            value: "true"
+            operator: Equal
+            effect: NoExecute
+          - key: CriticalAddonsOnly
+            value: "true"
+            operator: Equal
+            effect: NoSchedule
+      EOT
+    ]
+    set = [
+      {
+        name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/sts-regional-endpoints"
+        value = "true"
+        type  = "string"
+      }
+    ]
+  }
 }
