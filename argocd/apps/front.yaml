@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: front
+  namespace: argocd
+spec:
+  project: default
+  source:
+    path: helm/front
+    repoURL: https://github.com/PTarasyuk/greencityinfra
+    targetRevision: HEAD
+    helm:
+      valuesFiles:
+        - values.yaml
+      parameters:
+        - name: image.tag
+          value: "v0.0.5-1a03ba6"
+        - name: service.type
+          value: "NodePort"
+        - name: ingress.enabled
+          value: "true"
+        - name: ingress.className
+          value: "alb"
+        - name: ingress.annotations.alb\.ingress\.kubernetes\.io/scheme
+          value: "internet-facing"
+        - name: ingress.hosts[0].host
+          value: "greensity.space"
+        - name: ingress.hosts[0].paths[0].path
+          value: "/"
+        - name: ingress.hosts[0].paths[0].pathType
+          value: "Prefix"
+  destination:
+    name: in-cluster
+    namespace: greencity
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

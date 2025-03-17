@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: user
+  namespace: argocd
+spec:
+  project: default
+  source:
+    path: helm/user
+    repoURL: https://github.com/PTarasyuk/greencityinfra
+    targetRevision: HEAD
+    helm:
+      valuesFiles:
+        - values.yaml
+      parameters:
+        - name: image.tag
+          value: "v0.0.3-0fc7ebd"
+  destination:
+    name: in-cluster
+    namespace: greencity
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
