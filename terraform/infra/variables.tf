@@ -8,7 +8,7 @@ variable "account_id" {
 
 variable "project_name" {
   type = string
-  default = "greensity" # TODO: change to greencity
+  default = "greencity"
 }
 
 variable "environment" {
