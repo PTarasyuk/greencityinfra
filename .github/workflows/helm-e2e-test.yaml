@@ -152,6 +152,8 @@ jobs:
       - name: Install Front
         run: |
           helm install front \
+            --set ingress.className=nginx \
+            --set ingress.annotations."kubernetes\.io/ingress\.class"="nginx" \
             --namespace greencity \
             helm/front/
 
